@@ -1,0 +1,24 @@
+#space-invaders{
+    position: relative;
+}
+#space-invaders div{
+    position:absolute;
+    width: 2%;
+    height: 3%;
+    transform: translate(50%, 50%);
+    transition-timing-function: linear;
+}
+#space-invaders .bullet{
+    position:absolute;
+    width: 3px;
+    height: 10px;
+    transform: translate(-50%, 50%);
+    transition-timing-function: linear;
+    background-color: yellow;
+}
+#space-invaders .player{
+    background-color: red;
+}
+#space-invaders .ship{
+    background-color: green;
+}
