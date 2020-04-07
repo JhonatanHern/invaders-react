@@ -24,7 +24,7 @@ const tileMapping = (tile,col,row) => {
     return {
         alive: true, // is the ship alive?
         col: col * 4, // X axis
-        row, // Y axis
+        row: row * 10, // Y axis
         type: tile === 1 ? 'ship' : 'player'
     }
 }
@@ -36,14 +36,17 @@ class SpaceInvaders extends Component {
         bullets: [],
         direction: RIGHT
     }
-    intervalID = null
+    intervalIDs = []
     componentDidMount(){
         this.startLevel()
-        console.log(this.props.tickSpeed)
-        this.intervalID = setInterval(this.move, this.props.tickSpeed)
+        this.intervalIDs.push(setInterval(this.move, this.props.tickSpeed))
+        this.intervalIDs.push(setInterval(this.moveBullets, this.props.tickSpeed / 5))
+        this.intervalIDs.push(setInterval(this.checkAllCollisions, this.props.tickSpeed / 5))
     }
     componentWillUnmount(){
-        clearInterval(this.intervalID)
+        for (let index = 0; index < this.intervalIDs.length; index++) {
+            clearInterval(this.intervalIDs[index])
+        }
     }
     startLevel = () => {
         let map = initialMap.map(
@@ -106,7 +109,7 @@ class SpaceInvaders extends Component {
         let canMoveRight = true
         for (let index = 0; index < this.state.map.length; index++) {
             const element = this.state.map[index];
-            canMoveRight = canMoveRight && (element.type === 'player' || element.col < MAP_SIZE - 4)
+            canMoveRight = canMoveRight && (element.type === 'player' || !element.alive || element.col < MAP_SIZE - SHIP_SIZE)
         }
         if (!canMoveRight) {
             this.setState({direction: LEFT})
@@ -122,7 +125,7 @@ class SpaceInvaders extends Component {
         let canMoveLeft = true
         for (let index = 0; index < this.state.map.length; index++) {
             const element = this.state.map[index];
-            canMoveLeft = canMoveLeft && (element.type === 'player' || element.col > 0)
+            canMoveLeft = canMoveLeft && (element.type === 'player' || !element.alive || element.col > 0)
         }
         if (!canMoveLeft) {
             this.setState({direction: RIGHT})
@@ -134,13 +137,46 @@ class SpaceInvaders extends Component {
         }))
         this.setState({map:newMap})
     }
-    moveBullets = () => {
-        this.setState({bullets: this.state.bullets.map(bullet => {
-            return {
-                ...bullet,
-                row: bullet.row + (bullet.type === 'player-bullet' ? UP : DOWN)
+    checkColission = bullet => {
+        if (bullet.type === 'player-bullet') {
+            if (!bullet.alive) {
+                return
             }
-        })})
+            for (let index = 0; index < this.state.map.length; index++) {
+                const ship = this.state.map[index]
+                if (
+                    ship.alive &&
+                    bullet.row <= ship.row + SHIP_SIZE / 2 &&
+                    bullet.row >= ship.row - SHIP_SIZE / 2 &&
+                    bullet.col <= ship.col + SHIP_SIZE / 2 &&
+                    bullet.col >= ship.col - SHIP_SIZE / 2
+                    ) {
+                    console.log('collision')
+                    ship.alive = false
+                    this.setState({map: this.state.map})
+                    return {...bullet, alive: false}
+                }
+                
+            }
+            return bullet
+        } else {// enemy bullet
+            return bullet
+        }
+    }
+    checkAllCollisions = () => {
+        this.setState({
+            bullets: this.state.bullets.map(bullet => this.checkColission(bullet)).filter(bullet => bullet)
+        })
+    }
+    moveBullets = () => {
+        this.setState({
+            bullets: this.state.bullets.map(bullet => {
+                return {
+                    ...bullet,
+                    row: bullet.row + (bullet.type === 'player-bullet' ? UP : DOWN)
+                }
+            }).filter(bullet => bullet.row >= -1 && bullet.row < MAP_SIZE + 1)
+        })
     }
     move = () => {
         if (this.state.direction === LEFT) {
@@ -148,7 +184,6 @@ class SpaceInvaders extends Component {
         }else{
             this.moveShipsRight()
         }
-        this.moveBullets()
     }
     render() {
         return (
@@ -166,7 +201,7 @@ class SpaceInvaders extends Component {
                 }
                 {
                     this.state.bullets.map((obj,index) => {
-                        return <Bullet data={obj} key={index} speed={this.props.tickSpeed} />
+                        return obj.alive ? <Bullet data={obj} key={index} speed={this.props.tickSpeed} /> : null
                     })
                 }
             </div>

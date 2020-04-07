@@ -1,17 +1,18 @@
 #space-invaders{
     position: relative;
+    outline: none;
 }
 #space-invaders div{
     position:absolute;
     width: 2%;
-    height: 3%;
-    transform: translate(50%, 50%);
+    height: 2%;
+    transform: translate(0%, 50%);
     transition-timing-function: linear;
 }
 #space-invaders .bullet{
     position:absolute;
     width: 3px;
-    height: 10px;
+    height: 2%;
     transform: translate(-50%, 50%);
     transition-timing-function: linear;
     background-color: yellow;

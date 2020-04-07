@@ -12,7 +12,7 @@ const myStyle = {
 function App() {
   return (
     <>
-        <SpaceInvaders style={myStyle} tickSpeed={50}/>
+        <SpaceInvaders style={myStyle} tickSpeed={150}/>
     </>
   );
 }
